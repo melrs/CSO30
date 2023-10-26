@@ -5,7 +5,7 @@
 // ****************************************************************************
 // Coloque aqui as suas modificações, p.ex. includes, defines variáveis, 
 // estruturas e funções
-
+#define DEBUG 1;
 
 // ****************************************************************************
 
@@ -29,6 +29,7 @@ void before_task_create (task_t *task ) {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_create - BEFORE - [%d]", task->id);
+    printf("cria uma nova tarefa, que recebe como parâmetros uma funcao e um argumento\n");
 #endif
 }
 
@@ -43,6 +44,7 @@ void before_task_exit () {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_exit - BEFORE - [%d]", taskExec->id);
+    printf("termina a tarefa corrente, indicando um valor de status encerramento\n");
 #endif
 }
 
@@ -57,6 +59,7 @@ void before_task_switch ( task_t *task ) {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_switch - BEFORE - [%d -> %d]", taskExec->id, task->id);
+    printf("troca de contexto: de %d para %d\n", taskExec->id, task->id);
 #endif
 }
 
@@ -64,6 +67,7 @@ void after_task_switch ( task_t *task ) {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_switch - AFTER - [%d -> %d]", taskExec->id, task->id);
+
 #endif
 }
 
@@ -71,6 +75,7 @@ void before_task_yield () {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_yield - BEFORE - [%d]", taskExec->id);
+    printf("libera o processador para a próxima tarefa, retornando à fila de tarefas prontas\n");
 #endif
 }
 void after_task_yield () {
@@ -85,6 +90,7 @@ void before_task_suspend( task_t *task ) {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_suspend - BEFORE - [%d]", task->id);
+    printf("suspende uma tarefa, retirando-a de sua fila de prontas\n");
 #endif
 }
 
@@ -99,6 +105,7 @@ void before_task_resume(task_t *task) {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_resume - BEFORE - [%d]", task->id);
+    printf("resume a execução de uma tarefa, colocando-a na fila de prontas\n");
 #endif
 }
 
@@ -113,6 +120,7 @@ void before_task_sleep () {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_sleep - BEFORE - [%d]", taskExec->id);
+    printf("suspende a tarefa corrente por um tempo determinado\n");
 #endif
 }
 
@@ -127,6 +135,7 @@ int before_task_join (task_t *task) {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_join - BEFORE - [%d]", taskExec->id);
+    printf("a tarefa corrente aguarda o encerramento de outra task");
 #endif
     return 0;
 }
@@ -135,6 +144,8 @@ int after_task_join (task_t *task) {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_join - AFTER - [%d]", taskExec->id);
+    printf("\ntask_join - AFTER PARAM:- [%d]", task->id);
+    printf("\ntask_join - AFTER EXECUTANDO:- [%c]", taskExec->state);
 #endif
     return 0;
 }
@@ -144,6 +155,7 @@ int before_sem_create (semaphore_t *s, int value) {
     // put your customization here
 #ifdef DEBUG
     printf("\nsem_create - BEFORE - [%d]", taskExec->id);
+    printf("cria um semáforo com valor inicial \"value\"");
 #endif
     return 0;
 }
@@ -160,6 +172,7 @@ int before_sem_down (semaphore_t *s) {
     // put your customization here
 #ifdef DEBUG
     printf("\nsem_down - BEFORE - [%d]", taskExec->id);
+    printf("requisita o semáforo");
 #endif
     return 0;
 }
@@ -176,6 +189,7 @@ int before_sem_up (semaphore_t *s) {
     // put your customization here
 #ifdef DEBUG
     printf("\nsem_up - BEFORE - [%d]", taskExec->id);
+    printf("libera o semáforo");
 #endif
     return 0;
 }
@@ -192,6 +206,7 @@ int before_sem_destroy (semaphore_t *s) {
     // put your customization here
 #ifdef DEBUG
     printf("\nsem_destroy - BEFORE - [%d]", taskExec->id);
+    printf("destroi o semáforo");
 #endif
     return 0;
 }
@@ -208,6 +223,7 @@ int before_mutex_create (mutex_t *m) {
     // put your customization here
 #ifdef DEBUG
     printf("\nmutex_create - BEFORE - [%d]", taskExec->id);
+    printf("cria um mutex");
 #endif
     return 0;
 }
@@ -224,6 +240,7 @@ int before_mutex_lock (mutex_t *m) {
     // put your customization here
 #ifdef DEBUG
     printf("\nmutex_lock - BEFORE - [%d]", taskExec->id);
+    printf("requisita o mutex");
 #endif
     return 0;
 }
@@ -240,6 +257,7 @@ int before_mutex_unlock (mutex_t *m) {
     // put your customization here
 #ifdef DEBUG
     printf("\nmutex_unlock - BEFORE - [%d]", taskExec->id);
+    printf("libera o mutex");
 #endif
     return 0;
 }
@@ -256,6 +274,7 @@ int before_mutex_destroy (mutex_t *m) {
     // put your customization here
 #ifdef DEBUG
     printf("\nmutex_destroy - BEFORE - [%d]", taskExec->id);
+    printf("destroi o mutex");
 #endif
     return 0;
 }
@@ -272,6 +291,7 @@ int before_barrier_create (barrier_t *b, int N) {
     // put your customization here
 #ifdef DEBUG
     printf("\nbarrier_create - BEFORE - [%d]", taskExec->id);
+    printf("cria uma barreira para N tarefas");
 #endif
     return 0;
 }
@@ -288,6 +308,7 @@ int before_barrier_join (barrier_t *b) {
     // put your customization here
 #ifdef DEBUG
     printf("\nbarrier_join - BEFORE - [%d]", taskExec->id);
+    printf("espera todas as N tarefas alcançarem a barreira");
 #endif
     return 0;
 }
@@ -304,6 +325,7 @@ int before_barrier_destroy (barrier_t *b) {
     // put your customization here
 #ifdef DEBUG
     printf("\nbarrier_destroy - BEFORE - [%d]", taskExec->id);
+    printf("destroi uma barreira");
 #endif
     return 0;
 }
@@ -320,6 +342,7 @@ int before_mqueue_create (mqueue_t *queue, int max, int size) {
     // put your customization here
 #ifdef DEBUG
     printf("\nmqueue_create - BEFORE - [%d]", taskExec->id);
+    printf("cria uma fila de mensagens com no máximo max mensagens de tamanho size bytes cada");
 #endif
     return 0;
 }
@@ -336,6 +359,7 @@ int before_mqueue_send (mqueue_t *queue, void *msg) {
     // put your customization here
 #ifdef DEBUG
     printf("\nmqueue_send - BEFORE - [%d]", taskExec->id);
+    printf("envia uma mensagem para a fila de mensagens");
 #endif
     return 0;
 }
@@ -352,6 +376,7 @@ int before_mqueue_recv (mqueue_t *queue, void *msg) {
     // put your customization here
 #ifdef DEBUG
     printf("\nmqueue_recv - BEFORE - [%d]", taskExec->id);
+    printf("recebe uma mensagem da fila de mensagens");
 #endif
     return 0;
 }
@@ -368,6 +393,7 @@ int before_mqueue_destroy (mqueue_t *queue) {
     // put your customization here
 #ifdef DEBUG
     printf("\nmqueue_destroy - BEFORE - [%d]", taskExec->id);
+    printf("destroi a fila de mensagens");
 #endif
     return 0;
 }
@@ -384,6 +410,7 @@ int before_mqueue_msgs (mqueue_t *queue) {
     // put your customization here
 #ifdef DEBUG
     printf("\nmqueue_msgs - BEFORE - [%d]", taskExec->id);
+    printf("retorna o número de mensagens atualmente na fila de mensagens");
 #endif
     return 0;
 }
@@ -396,8 +423,28 @@ int after_mqueue_msgs (mqueue_t *queue) {
     return 0;
 }
 
+void print_tcb( task_t* task ){
+    printf("\n\n\tTID: %d", task->id);
+    printf("\n\tState: %c", task->state);
+   if (task->next != NULL) {
+        printf("\n\tNext: %d", (task->next)->id);
+    } else {
+        printf("\n\tNext: (null)");
+    }
+
+    if (task->prev != NULL) {
+        printf("\n\tPrev: %d", (task->prev)->id);
+    } else {
+        printf("\n\tPrev: (null)");
+    }
+    printf("\n\tExitCode: %d", task->exitCode);
+    printf("\n\tAwakeTime: %d\n", task->awakeTime);
+}
+
 task_t * scheduler() {
     // FCFS scheduler
+    
+    PRINT_READY_QUEUE
     if ( readyQueue != NULL ) {
         return readyQueue;
     }
