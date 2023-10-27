@@ -5,7 +5,84 @@
 // ****************************************************************************
 // Coloque aqui as suas modificações, p.ex. includes, defines variáveis, 
 // estruturas e funções
-#define DEBUG 1;
+//#define DEBUG 1;
+
+task_t * chooseTask(task_t *task) {
+    if (task == NULL)
+        return taskExec;
+
+    return task;
+}
+
+int task_get_eet(task_t *task){
+    return chooseTask(task)->executionTime;
+}
+
+int task_get_ret(task_t *task){
+    return chooseTask(task)->remainingTime;
+}
+
+int task_getprio (task_t *task){
+    return chooseTask(task)->priority;
+}
+
+void task_setprio (task_t *task, int prio){
+    task = chooseTask(task);
+    task->priority = prio;
+}
+
+void task_set_eet (task_t *task, int et){
+    task = chooseTask(task);
+    task->executionTime = et;
+    task->remainingTime = et;
+    task_t *next = task->next;
+    int aux;
+
+    do {
+        if(next->remainingTime == task->remainingTime ||
+          (next->remainingTime < task->remainingTime && task->priority < next->priority) ||
+          (next->remainingTime > task->remainingTime && task->priority > next->priority) 
+        ){
+            next = next->next;
+            continue;
+        }
+        
+        aux = task->priority;
+        task->priority = next->priority;
+        next->priority = aux;
+        next = next->next;
+
+    } while (next != task->prev);
+
+}
+
+void print_tcb_details(task_t* task){
+    task = chooseTask(task);
+    printf("TID: %d, ", task->id);
+    printf("\n\tState: %c", task->state);
+    if (task->next != NULL) {
+        printf("\n\tNext: %d", (task->next)->id);
+    } else {
+        printf("\n\tNext: (null)");
+    }
+
+    if (task->prev != NULL) {
+        printf("\n\tPrev: %d", (task->prev)->id);
+    } else {
+        printf("\n\tPrev: (null)");
+    }
+    printf("\n\tExitCode: %d", task->exitCode);
+    printf("\n\tAwakeTime: %d", task->awakeTime);
+    printf("\n\tPriority: %d", task->priority);
+    printf("\n\tIsSystemTask: %d", task->isSystemTask);
+    printf("\n\tExecutionTime: %d", task->executionTime);
+    printf("\n\tProcessorTime: %d", task->processorTime);
+    printf("\n\tRemainingTime: %d\n", task->remainingTime);
+}
+
+void print_tcb(task_t* task){
+    printf("(%d,%d), ", task->id, task->priority);
+}
 
 // ****************************************************************************
 
@@ -26,7 +103,7 @@ void after_ppos_init () {
 }
 
 void before_task_create (task_t *task ) {
-    // put your customization here
+
 #ifdef DEBUG
     printf("\ntask_create - BEFORE - [%d]", task->id);
     printf("cria uma nova tarefa, que recebe como parâmetros uma funcao e um argumento\n");
@@ -34,7 +111,7 @@ void before_task_create (task_t *task ) {
 }
 
 void after_task_create (task_t *task ) {
-    // put your customization here
+    task_set_eet(task, 99999);
 #ifdef DEBUG
     printf("\ntask_create - AFTER - [%d]", task->id);
 #endif
@@ -135,6 +212,8 @@ int before_task_join (task_t *task) {
     // put your customization here
 #ifdef DEBUG
     printf("\ntask_join - BEFORE - [%d]", taskExec->id);
+    printf("\ntask_join - BEFORE EXECUTANDO STATE:- [%c]", taskExec->state);
+    printf("\ntask_join - BEFORE PARAM:- [%d]", task->id);
     printf("a tarefa corrente aguarda o encerramento de outra task");
 #endif
     return 0;
@@ -143,9 +222,9 @@ int before_task_join (task_t *task) {
 int after_task_join (task_t *task) {
     // put your customization here
 #ifdef DEBUG
-    printf("\ntask_join - AFTER - [%d]", taskExec->id);
+    printf("\ntask_join - AFTER EXECUTANDO:- [%d]", taskExec->id);
     printf("\ntask_join - AFTER PARAM:- [%d]", task->id);
-    printf("\ntask_join - AFTER EXECUTANDO:- [%c]", taskExec->state);
+    printf("\ntask_join - AFTER EXECUTANDO STATE:- [%c]", taskExec->state);
 #endif
     return 0;
 }
@@ -423,32 +502,25 @@ int after_mqueue_msgs (mqueue_t *queue) {
     return 0;
 }
 
-void print_tcb( task_t* task ){
-    printf("\n\n\tTID: %d", task->id);
-    printf("\n\tState: %c", task->state);
-   if (task->next != NULL) {
-        printf("\n\tNext: %d", (task->next)->id);
-    } else {
-        printf("\n\tNext: (null)");
-    }
-
-    if (task->prev != NULL) {
-        printf("\n\tPrev: %d", (task->prev)->id);
-    } else {
-        printf("\n\tPrev: (null)");
-    }
-    printf("\n\tExitCode: %d", task->exitCode);
-    printf("\n\tAwakeTime: %d\n", task->awakeTime);
-}
-
+// Uma função scheduler que analisa a fila de tarefas prontas, devolvendo um ponteiro para a próxima tarefa a receber o processador, que será a com menor prioridade.
 task_t * scheduler() {
-    // FCFS scheduler
-    
-    PRINT_READY_QUEUE
-    if ( readyQueue != NULL ) {
-        return readyQueue;
+    //printf("\nCHAMANDO O SCHEDULER\n");
+    //PRINT_READY_QUEUE
+    if(readyQueue == NULL)
+        return NULL;
+
+    task_t* next = readyQueue;
+    task_t* lowestPriority = readyQueue;
+
+    while (next != readyQueue->prev) {
+        next = next->next;
+        if (next->priority < lowestPriority->priority) {
+            lowestPriority = next;
+        }
     }
-    return NULL;
+
+    //printf("\nSCHEDULER RETORNOU [%d]\n", lowestPriority->id);
+    return lowestPriority;
 }
 
 
