@@ -39,22 +39,22 @@ void task_setprio (task_t *task, int prio){
     task->priority = prio;
 }
 
-void task_set_eet (task_t *task, int et){
-    task = chooseTask(task);
-    task->executionTime = et;
-    task->remainingTime = et;
+void task_set_dinamic_prio(task_t *task){
+    if (running_system_task)
+        return;
+        
     task_t *next = task->next;
     int aux;
 
     do {
         if(next->remainingTime == task->remainingTime ||
-          (next->remainingTime < task->remainingTime && task->priority < next->priority) ||
-          (next->remainingTime > task->remainingTime && task->priority > next->priority) 
+          (next->remainingTime < task->remainingTime && task->priority > next->priority) ||
+          (next->remainingTime > task->remainingTime && task->priority < next->priority) 
         ){
             next = next->next;
             continue;
         }
-        
+
         aux = task->priority;
         task->priority = next->priority;
         next->priority = aux;
@@ -62,6 +62,14 @@ void task_set_eet (task_t *task, int et){
 
     } while (next != task->prev);
 
+}
+
+void task_set_eet (task_t *task, int et){
+    task = chooseTask(task);
+    task->executionTime = et;
+    task->remainingTime = et;
+
+    task_set_dinamic_prio(task);
 }
 
 void print_tcb_details(task_t* task){
@@ -85,7 +93,12 @@ void print_tcb_details(task_t* task){
     printf("\n\tIsSystemTask: %d", task->isSystemTask);
     printf("\n\tExecutionTime: %d", task->executionTime);
     printf("\n\tProcessorTime: %d", task->processorTime);
-    printf("\n\tRemainingTime: %d\n", task->remainingTime);
+    printf("\n\tRemainingTime: %d", task->remainingTime);
+    printf("\n\tRunningTime: %d", task->runningTime);
+    printf("\n\tActivations: %d", task->activations);
+    printf("\n\tStart: %d", task->start);
+    printf("\n\tFinish: %d", task->finish);
+    printf("\n\tQuantum: %d\n", task->quantum);
 }
 
 void print_tcb(task_t* task){
@@ -95,11 +108,15 @@ void print_tcb(task_t* task){
 
 void handler (int signum) {
   systemTime++;
-  if(!running_system_task)
+  if(!running_system_task){
     taskExec->quantum--;
-  
-  if(taskExec->quantum == 0)
+    taskExec->runningTime++;
+    taskExec->remainingTime--;
+  }
+
+  if(taskExec->quantum == 0){
     task_yield();
+  }
 
 }
 
@@ -155,6 +172,7 @@ void before_task_create (task_t *task ) {
 
 void after_task_create (task_t *task ) {
     running_system_task = false;
+    task_setprio(task, task->id);
     task_set_eet(task, 99999);
 #ifdef DEBUG
     printf("\ntask_create - AFTER - [%d]", task->id);
@@ -179,7 +197,6 @@ void after_task_exit () {
 
 void before_task_switch ( task_t *task ) {
     running_system_task = true;
-    // put your customization here
 #ifdef DEBUG
     printf("\ntask_switch - BEFORE - [%d -> %d]", taskExec->id, task->id);
     printf("troca de contexto: de %d para %d\n", taskExec->id, task->id);
@@ -188,7 +205,7 @@ void before_task_switch ( task_t *task ) {
 
 void after_task_switch ( task_t *task ) {
     running_system_task = false;
-    // put your customization here
+    taskExec->awakeTime = systime();
 #ifdef DEBUG
     printf("\ntask_switch - AFTER - [%d -> %d]", taskExec->id, task->id);
 
@@ -566,19 +583,20 @@ task_t * scheduler() {
     //PRINT_READY_QUEUE
     if(readyQueue == NULL)
         return NULL;
-
+    
+    task_set_dinamic_prio(readyQueue);
     task_t* next = readyQueue;
     task_t* lowestPriority = readyQueue;
 
     while (next != readyQueue->prev) {
         next = next->next;
-        if (next->priority < lowestPriority->priority) {
+        if (next->priority > 0 && (next->priority < lowestPriority->priority)) {
             lowestPriority = next;
         }
     }
     running_system_task = false;
     lowestPriority->quantum = 20;
-    //printf("\nSCHEDULER RETORNOU [%d]\n", lowestPriority->id);
+    //printf("SCHEDULER RETORNOU [%d]\n", lowestPriority->id);
     return lowestPriority;
 }
 
