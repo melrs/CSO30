@@ -29,12 +29,11 @@ typedef struct task_t
     int isSystemTask;
     
     unsigned int executionTime;
-    unsigned int processorTime;
     unsigned int remainingTime;
     unsigned int runningTime;
     unsigned int activations;
     unsigned int start;
-    unsigned int finish;
+    unsigned int totalExecutionTime;
     
     unsigned int quantum;
    
